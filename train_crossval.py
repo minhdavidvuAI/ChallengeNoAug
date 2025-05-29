@@ -160,14 +160,16 @@ if __name__ == "__main__":
     augment_path = config.augment_path
     
     ESC50(subset="train", root=config.esc50_path, download=True)
+    """
     if not os.path.exists(config.augment_path):
         audio_augmenter = AudioAugmenter(os.path.join(config.esc50_path, 'ESC-50-master/audio'), config.augment_path)
         audio_augmenter.augment_data()
-    
+    """
     # for all folds
     scores = {}
     # expensive!
     #global_stats = get_global_stats(data_path, augment_path)
+    global_stats = get_global_stats(data_path)
     print(global_stats)
     # for spectrograms
     
@@ -189,8 +191,9 @@ if __name__ == "__main__":
                 download=False,
                 test_folds={test_fold},
                 global_mean_std=global_stats[test_fold - 1])
+            train_set = get_fold_dataset(subset="train")
 
-            
+            """
             get_fold_augmented = partial(
                 ESC50,
                 #InMemoryESC50,
@@ -201,7 +204,6 @@ if __name__ == "__main__":
                 augmentedFlag=True,
             )
             
-            train_set = get_fold_dataset(subset="train")
             augmented_set = get_fold_augmented(subset="train")
             combined_dataset = ConcatDataset([train_set, augmented_set])
             
@@ -212,7 +214,7 @@ if __name__ == "__main__":
                 print(f"lenght aug: {len(augmented_set)}")
                 print(f"lenght both: {len(combined_dataset)}")
                 raise ValueError
-            
+            """
             #global_stats = get_global_stats(data_path, augment_path)
             #print(global_stats)
             
