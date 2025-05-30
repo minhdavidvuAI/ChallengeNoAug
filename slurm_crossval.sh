@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=esc50_run
+#SBATCH --job-name=train
 #SBATCH --partition=spotvm-t4
 #SBATCH --time=7:00:00
 #SBATCH --ntasks=1
