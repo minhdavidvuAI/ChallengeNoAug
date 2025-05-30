@@ -196,45 +196,6 @@ class ESC50(data.Dataset):
 
         return file_name, feat, class_id
 
-class InMemoryESC50(ESC50):
-    def __init__(self, root, test_folds=frozenset((1,)), subset="train", global_mean_std=(0.0, 1.0), download=False, augmentedFlag=False):
-        super().__init__(root=root,
-                 test_folds=test_folds,
-                 subset=subset,
-                 global_mean_std=global_mean_std,
-                 download=download,
-                 augmentedFlag=augmentedFlag)
-                 
-        # Make safe folder name based on fold
-        fold_str = "_".join(str(f) for f in sorted(test_folds))
-        if not augmentedFlag:
-            output_dir = f"data/preprocessed/og/fold_{fold_str}_{subset}"
-        else:
-            output_dir = f"data/preprocessed/aug/fold_{fold_str}_{subset}"
-        folder_exists = os.path.exists(output_dir)
-
-        if not folder_exists:
-            os.makedirs(output_dir, exist_ok=True)       
-            print(f"Preprocessing {super().__len__()} samples to: {output_dir}")
-            for i in tqdm(range(super().__len__())):
-                fname, feat, label = super().__getitem__(i)
-                out_path = os.path.join(output_dir, fname.replace('.wav', '.pt'))
-                torch.save({'features': feat, 'label': label}, out_path)
-        
-        self.data = []
-        self.files = sorted([f for f in os.listdir(output_dir) if f.endswith('.pt')])
-        for f in tqdm(self.files, desc="Loading into RAM"):
-            data = torch.load(os.path.join(output_dir, f))
-            self.data.append((f, data['features'], data['label']))
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        return self.data[idx]
-        
-        
-
 def get_global_stats(data_path):
     res = []
     for i in range(1, 6):
@@ -242,25 +203,3 @@ def get_global_stats(data_path):
         a = torch.concatenate([v[1] for v in tqdm(train_set)])
         res.append((a.mean(), a.std()))
     return np.array(res)
-"""
-def get_global_stats(data_path, augment_path):
-    if data_path == None or augment_path == None:
-        raise ValueError
-    res = []
-    for i in range(1, 6):
-        # Load original training data
-        train_set = ESC50(subset="train", test_folds={i}, root=data_path, download=True)
-        original_data = torch.concatenate([v[1] for v in tqdm(train_set)])
-        
-        # Load augmented training data
-        augmented_dataset = ESC50(subset="train", test_folds={i}, root=augment_path, download=False, augmentedFlag=True)
-        augmented_data = torch.concatenate([v[1] for v in tqdm(augmented_dataset)])
-        
-        # Combine original and augmented data
-        combined_data = torch.cat([original_data, augmented_data], dim=0)
-        
-        # Compute global stats (mean and std) for the combined data
-        res.append((combined_data.mean(), combined_data.std()))
-    
-    return np.array(res)
-"""

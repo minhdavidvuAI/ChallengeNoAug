@@ -12,7 +12,7 @@ from functools import partial
     
 from models.model_classifier import ResNet18
 from models.utils import EarlyStopping, Tee
-from dataset.dataset_ESC50 import ESC50, get_global_stats,InMemoryESC50
+from dataset.dataset_ESC50 import ESC50, get_global_stats
 from augmentAudioClass import AudioAugmenter
 import config
 
@@ -160,15 +160,8 @@ if __name__ == "__main__":
     augment_path = config.augment_path
     
     ESC50(subset="train", root=config.esc50_path, download=True)
-    """
-    if not os.path.exists(config.augment_path):
-        audio_augmenter = AudioAugmenter(os.path.join(config.esc50_path, 'ESC-50-master/audio'), config.augment_path)
-        audio_augmenter.augment_data()
-    """
     # for all folds
     scores = {}
-    # expensive!
-    #global_stats = get_global_stats(data_path, augment_path)
     global_stats = get_global_stats(data_path)
     print(global_stats)
     # for spectrograms
@@ -186,38 +179,11 @@ if __name__ == "__main__":
             # this function assures consistent 'test_folds' setting for train, val, test splits
             get_fold_dataset = partial(
                 ESC50,
-                #InMemoryESC50,
                 root=data_path,
                 download=False,
                 test_folds={test_fold},
                 global_mean_std=global_stats[test_fold - 1])
             train_set = get_fold_dataset(subset="train")
-
-            """
-            get_fold_augmented = partial(
-                ESC50,
-                #InMemoryESC50,
-                root=augment_path,
-                download=False,
-                test_folds={test_fold},
-                global_mean_std=global_stats[test_fold - 1],
-                augmentedFlag=True,
-            )
-            
-            augmented_set = get_fold_augmented(subset="train")
-            combined_dataset = ConcatDataset([train_set, augmented_set])
-            
-            # sanity check
-            # train set should be the same length as augmented
-            if len(train_set) != len(augmented_set):
-                print(f"lenght org: {len(train_set)}")
-                print(f"lenght aug: {len(augmented_set)}")
-                print(f"lenght both: {len(combined_dataset)}")
-                raise ValueError
-            """
-            #global_stats = get_global_stats(data_path, augment_path)
-            #print(global_stats)
-            
             
             print('*****')
             print(f'train folds are {train_set.train_folds} and test fold is {train_set.test_folds}')
